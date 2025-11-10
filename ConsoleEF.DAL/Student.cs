@@ -13,5 +13,7 @@
         public string Email { get; set; }
 
         public int Year { get; set; }
+        public int GroupId { get; set; }
+        public Group Group { get; set; }
     }
 }

@@ -4,11 +4,13 @@ namespace ConsoleEF
 {
     internal class Menu
     {
-        private readonly StRepository repo;
+        private readonly StudentRepositoryDapper studentRepo;
+        private readonly GroupRepositoryDapper groupRepo;
 
         public Menu()
         {
-            repo = new StRepository();
+            studentRepo = new StudentRepositoryDapper();
+            groupRepo = new GroupRepositoryDapper();
         }
 
         public void Show()
@@ -23,6 +25,7 @@ namespace ConsoleEF
                 Console.WriteLine("2. List Students");
                 Console.WriteLine("3. Update Student");
                 Console.WriteLine("4. Delete Student");
+                Console.WriteLine("5. Manage Groups");
                 Console.WriteLine("0. Exit");
                 Console.Write("Choose an option: ");
 
@@ -42,6 +45,9 @@ namespace ConsoleEF
                     case "4":
                         DeleteStudent();
                         break;
+                    case "5":
+                        ManageGroups();
+                        break;
                     case "0":
                         running = false;
                         break;
@@ -58,7 +64,7 @@ namespace ConsoleEF
             Console.Clear();
             var newStudent = new Student();
             InputStudentData(newStudent, isNew: true);
-            repo.Add(newStudent);
+            studentRepo.Add(newStudent);
             Console.WriteLine("Student added successfully.");
             Pause();
         }
@@ -66,7 +72,7 @@ namespace ConsoleEF
         private void ListStudents()
         {
             Console.Clear();
-            var students = repo.GetAll();
+            var students = studentRepo.GetAll();
 
             if (students.Count == 0)
             {
@@ -91,11 +97,11 @@ namespace ConsoleEF
 
             if (int.TryParse(Console.ReadLine(), out int editId))
             {
-                var student = repo.GetById(editId);
+                var student = studentRepo.GetById(editId);
                 if (student != null)
                 {
                     InputStudentData(student, isNew: false);
-                    repo.Update(student);
+                    studentRepo.Update(student);
                     Console.WriteLine("Student updated successfully.");
                 }
                 else
@@ -118,14 +124,14 @@ namespace ConsoleEF
 
             if (int.TryParse(Console.ReadLine(), out int deleteId))
             {
-                var student = repo.GetById(deleteId);
+                var student = studentRepo.GetById(deleteId);
                 if (student != null)
                 {
                     Console.Write($"Are you sure you want to delete {student.Name}? (y/n): ");
                     var confirm = Console.ReadLine()?.ToLower();
                     if (confirm == "y")
                     {
-                        repo.Remove(student);
+                        studentRepo.Remove(student);
                         Console.WriteLine("Student deleted successfully.");
                     }
                     else
@@ -167,6 +173,152 @@ namespace ConsoleEF
             var address = Console.ReadLine();
             if (!string.IsNullOrEmpty(address) || isNew)
                 student.Adress = address ?? student.Adress;
+
+            var groupRepo = new GroupRepositoryDapper();
+            var groups = groupRepo.GetAll();
+
+            if (groups.Count == 0)
+            {
+                Console.WriteLine("No groups found. Please add a group first!");
+                Pause();
+                return;
+            }
+
+            Console.WriteLine("\nAvailable Groups:");
+            foreach (var g in groups)
+                Console.WriteLine($"{g.Id}. {g.Name} ({g.Department})");
+            Console.Write("Enter Group Id: ");
+            if (int.TryParse(Console.ReadLine(), out int groupId) && groups.Any(g => g.Id == groupId))
+            {
+                student.GroupId = groupId;
+            }
+            else
+            {
+                Console.WriteLine("Invalid Group Id. Student not added.");
+                student.GroupId = 0;
+            }
+        }
+
+
+        private void repo_AddStudentToGroup(Student student)
+        {
+            var groups = groupRepo.GetAll();
+            if (groups.Count == 0)
+            {
+                Console.WriteLine("No groups found. Please add a group first!");
+                Pause();
+                return;
+            }
+
+            Console.WriteLine("\nAvailable Groups:");
+            foreach (var g in groups)
+                Console.WriteLine($"{g.Id}. {g.Name} ({g.Department})");
+
+            Console.Write("Enter Group ID: ");
+            if (int.TryParse(Console.ReadLine(), out int groupId))
+                student.GroupId = groupId;
+            else
+                Console.WriteLine("Invalid input. Student will not be linked to a group.");
+        }
+
+
+        private void ManageGroups()
+        {
+            bool groupMenu = true;
+            while (groupMenu)
+            {
+                Console.Clear();
+                Console.WriteLine("====== GROUP MANAGEMENT ======");
+                Console.WriteLine("1. Add Group");
+                Console.WriteLine("2. List Groups");
+                Console.WriteLine("3. Delete Group");
+                Console.WriteLine("0. Back");
+                Console.Write("Choose an option: ");
+
+                var choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        AddGroup();
+                        break;
+                    case "2":
+                        ListGroups();
+                        break;
+                    case "3":
+                        DeleteGroup();
+                        break;
+                    case "0":
+                        groupMenu = false;
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice.");
+                        Pause();
+                        break;
+                }
+            }
+        }
+
+        private void AddGroup()
+        {
+            Console.Clear();
+            Console.Write("Enter Group Name: ");
+            var name = Console.ReadLine();
+
+            Console.Write("Enter Department: ");
+            var dept = Console.ReadLine();
+
+            groupRepo.Add(new Group { Name = name, Department = dept });
+            Console.WriteLine("Group added successfully.");
+            Pause();
+        }
+
+        private void ListGroups()
+        {
+            Console.Clear();
+            var groups = groupRepo.GetAll();
+
+            if (groups.Count == 0)
+                Console.WriteLine("No groups found.");
+            else
+            {
+                Console.WriteLine("====== GROUPS ======");
+                foreach (var g in groups)
+                    Console.WriteLine($"Id: {g.Id}, Name: {g.Name}, Department: {g.Department}");
+            }
+
+            Pause();
+        }
+
+        private void DeleteGroup()
+        {
+            Console.Clear();
+            Console.Write("Enter Group Id to delete: ");
+            if (int.TryParse(Console.ReadLine(), out int id))
+            {
+                var group = groupRepo.GetById(id);
+                if (group == null)
+                {
+                    Console.WriteLine("Group not found.");
+                }
+                else
+                {
+                    Console.Write($"Are you sure you want to delete {group.Name}? (y/n): ");
+                    var confirm = Console.ReadLine()?.ToLower();
+                    if (confirm == "y")
+                    {
+                        groupRepo.Remove(id);
+                        Console.WriteLine("Group deleted successfully.");
+                    }
+                    else
+                        Console.WriteLine("Deletion cancelled.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid Id.");
+            }
+            Pause();
         }
 
         private void Pause()
