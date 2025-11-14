@@ -7,28 +7,43 @@ namespace ConsoleEF.DAL
     {
         private string connStr = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=Students;Integrated Security=True;Connect Timeout=30;";
 
-        public List<Student> GetAll()
-            {
+        //public List<Student> GetAll()
+        //    {
+        //    using (var db = new SqlConnection(connStr))
+        //    {
+        //        string sql = @"
+        //            SELECT s.*, g.Id, g.Name, g.Department
+        //            FROM Students s
+        //            INNER JOIN Groups g ON s.GroupId = g.Id";
+
+        //        var students = db.Query<Student, Group, Student>(
+        //            sql,
+        //            (student, group) =>
+        //            {
+        //                student.Group = group;
+        //                return student;
+        //            },
+        //            splitOn: "Id"
+        //        ).ToList();
+
+        //        return students;
+        //    }
+        //}
+
+        public List<StudentWithGroup> GetAllWithGroups()
+        {
             using (var db = new SqlConnection(connStr))
             {
                 string sql = @"
-                    SELECT s.*, g.Id, g.Name, g.Department
-                    FROM Students s
-                    INNER JOIN Groups g ON s.GroupId = g.Id";
+            SELECT s.Id, s.Name, s.Age, s.Email, s.Adress, s.Year, 
+                   g.Name AS GroupName
+            FROM Students s
+            LEFT JOIN Groups g ON s.GroupId = g.Id";
 
-                var students = db.Query<Student, Group, Student>(
-                    sql,
-                    (student, group) =>
-                    {
-                        student.Group = group;
-                        return student;
-                    },
-                    splitOn: "Id"
-                ).ToList();
-
-                return students;
+                return db.Query<StudentWithGroup>(sql).ToList();
             }
         }
+
 
         public Student GetById(int id)
         {

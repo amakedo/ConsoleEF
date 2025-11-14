@@ -69,10 +69,31 @@ namespace ConsoleEF
             Pause();
         }
 
+        //private void ListStudents()
+        //{
+        //    Console.Clear();
+        //    var students = studentRepo.GetAll();
+
+        //    if (students.Count == 0)
+        //    {
+        //        Console.WriteLine("No students found.");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("====== STUDENTS ======");
+        //        foreach (var s in students)
+        //        {
+        //            Console.WriteLine($"Id: {s.Id}, Name: {s.Name}, Age: {s.Age}, Email: {s.Email}, Address: {s.Adress}");
+        //        }
+        //    }
+
+        //    Pause();
+        //}
+
         private void ListStudents()
         {
             Console.Clear();
-            var students = studentRepo.GetAll();
+            var students = studentRepo.GetAllWithGroups();
 
             if (students.Count == 0)
             {
@@ -80,15 +101,22 @@ namespace ConsoleEF
             }
             else
             {
-                Console.WriteLine("====== STUDENTS ======");
+                Console.WriteLine("====== STUDENTS ======\n");
                 foreach (var s in students)
                 {
-                    Console.WriteLine($"Id: {s.Id}, Name: {s.Name}, Age: {s.Age}, Email: {s.Email}, Address: {s.Adress}");
+                    Console.WriteLine($"Id: {s.Id}");
+                    Console.WriteLine($"Name: {s.Name}");
+                    Console.WriteLine($"Age: {s.Age}");
+                    Console.WriteLine($"Email: {s.Email}");
+                    Console.WriteLine($"Address: {s.Adress}");
+                    Console.WriteLine($"Group: {s.GroupName}");
+                    Console.WriteLine(new string('-', 30));
                 }
             }
 
             Pause();
         }
+
 
         private void UpdateStudent()
         {
